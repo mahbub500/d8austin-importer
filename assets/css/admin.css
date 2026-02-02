@@ -1,0 +1,253 @@
+/* D8Austin Product Importer - Admin Styles */
+
+.d8austin-importer-wrap {
+    margin-top: 20px;
+}
+
+.d8austin-importer-container {
+    max-width: 1200px;
+}
+
+.d8austin-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.d8austin-card h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.d8austin-form .form-group {
+    margin-bottom: 20px;
+}
+
+.d8austin-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.d8austin-form input[type="url"],
+.d8austin-form textarea {
+    width: 100%;
+    max-width: 600px;
+}
+
+.d8austin-form textarea {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.d8austin-form .button-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    height: auto;
+}
+
+.d8austin-form .button-primary .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.d8austin-form .button-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Import Status Messages */
+.import-status {
+    margin-top: 15px;
+}
+
+.import-status .notice {
+    margin: 10px 0;
+    padding: 10px 15px;
+}
+
+.import-status .notice p {
+    margin: 0.5em 0;
+}
+
+.import-status .success-item,
+.import-status .error-item {
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 3px;
+}
+
+.import-status .success-item {
+    background: #d4edda;
+    border-left: 3px solid #28a745;
+    color: #155724;
+}
+
+.import-status .error-item {
+    background: #f8d7da;
+    border-left: 3px solid #dc3545;
+    color: #721c24;
+}
+
+.import-status .success-item a,
+.import-status .error-item a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+/* Progress Bar */
+.import-progress {
+    margin-top: 15px;
+}
+
+.progress-bar {
+    width: 100%;
+    max-width: 600px;
+    height: 30px;
+    background: #f0f0f1;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
+    border-radius: 15px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3338;
+}
+
+/* Import History Table */
+.d8austin-card table {
+    margin-top: 15px;
+}
+
+.d8austin-card table th {
+    font-weight: 600;
+}
+
+.d8austin-card table .dashicons-external {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+}
+
+.d8austin-card .no-items {
+    text-align: center;
+    padding: 40px 20px;
+    color: #787c82;
+    font-style: italic;
+}
+
+/* Instructions */
+.instructions-list {
+    counter-reset: step-counter;
+    list-style: none;
+    padding-left: 0;
+}
+
+.instructions-list li {
+    counter-increment: step-counter;
+    margin-bottom: 20px;
+    padding-left: 50px;
+    position: relative;
+}
+
+.instructions-list li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #2271b1;
+    color: #fff;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.instructions-list li strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #1d2327;
+}
+
+.instructions-list li p {
+    margin: 0;
+    color: #50575e;
+}
+
+/* Loading State */
+.d8austin-form.loading .button-primary {
+    position: relative;
+    padding-left: 40px;
+}
+
+.d8austin-form.loading .button-primary::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .d8austin-card {
+        padding: 15px;
+    }
+    
+    .d8austin-form input[type="url"],
+    .d8austin-form textarea {
+        max-width: 100%;
+    }
+    
+    .instructions-list li {
+        padding-left: 45px;
+    }
+    
+    .instructions-list li::before {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+}
+
+/* Notices */
+.d8austin-card .notice.inline {
+    margin: 15px 0 5px;
+}
+
+.d8austin-card .notice.inline p {
+    margin: 0.5em 0;
+}
