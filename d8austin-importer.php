@@ -3,7 +3,7 @@
  * Plugin Name: D8Austin Product Importer
  * Plugin URI: https://yoursite.com
  * Description: Import products from D8Austin.com to your WooCommerce store
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Your Name
  * Author URI: https://yoursite.com
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('D8AUSTIN_IMPORTER_VERSION', '1.0.0');
+define('D8AUSTIN_IMPORTER_VERSION', '1.1.0');
 define('D8AUSTIN_IMPORTER_FILE', __FILE__);
 define('D8AUSTIN_IMPORTER_PATH', plugin_dir_path(__FILE__));
 define('D8AUSTIN_IMPORTER_URL', plugin_dir_url(__FILE__));
@@ -125,14 +125,16 @@ class D8Austin_Importer_Plugin {
         }
         
         try {
-            $scraper = new D8Austin_Product_Scraper();
+            // CORRECTED: Use scraper to scrape, then importer to import
+            $scraper = new D8Austin_Product_Scraper_Improved();
             $product_data = $scraper->scrape_product($product_url);
             
             if (!$product_data) {
                 wp_send_json_error(array('message' => 'Failed to scrape product data'));
             }
             
-            $importer = new D8Austin_Product_Importer();
+            // Now use importer to import the scraped data
+            $importer = new D8Austin_Product_Importer_Improved();
             $product_id = $importer->import_product($product_data);
             
             if (is_wp_error($product_id)) {
@@ -168,8 +170,9 @@ class D8Austin_Importer_Plugin {
             'failed' => array()
         );
         
-        $scraper = new D8Austin_Product_Scraper();
-        $importer = new D8Austin_Product_Importer();
+        // CORRECTED: Create both scraper and importer instances
+        $scraper = new D8Austin_Product_Scraper_Improved();
+        $importer = new D8Austin_Product_Importer_Improved();
         
         foreach ($product_urls as $url) {
             $url = esc_url_raw(trim($url));
@@ -178,9 +181,13 @@ class D8Austin_Importer_Plugin {
             }
             
             try {
+                // First scrape the product
                 $product_data = $scraper->scrape_product($url);
+                
                 if ($product_data) {
+                    // Then import it
                     $product_id = $importer->import_product($product_data);
+                    
                     if (!is_wp_error($product_id)) {
                         $results['success'][] = array(
                             'url' => $url,
