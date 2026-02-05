@@ -78,6 +78,11 @@ class D8Austin_Product_Importer_Improved {
             return new WP_Error('create_failed', 'Failed to create product');
         }
         
+        // Assign brand if provided
+        if (!empty($product_data['brand_id'])) {
+            $this->assign_brand($product_id, $product_data['brand_id']);
+        }
+        
         // Import images
         if (!empty($product_data['images'])) {
             $this->import_images($product_id, $product_data['images']);
@@ -121,6 +126,11 @@ class D8Austin_Product_Importer_Improved {
             return new WP_Error('create_failed', 'Failed to create variable product');
         }
         
+        // Assign brand if provided
+        if (!empty($product_data['brand_id'])) {
+            $this->assign_brand($product_id, $product_data['brand_id']);
+        }
+        
         // Import main product images
         if (!empty($product_data['images'])) {
             $this->import_images($product_id, $product_data['images']);
@@ -146,6 +156,23 @@ class D8Austin_Product_Importer_Improved {
         WC_Product_Variable::sync($product_id);
         
         return $product_id;
+    }
+    
+    /**
+     * Assign brand to product
+     */
+    private function assign_brand($product_id, $brand_id) {
+        // Get the brand term
+        $term = get_term($brand_id);
+        
+        if (is_wp_error($term) || !$term) {
+            return false;
+        }
+        
+        // Assign the brand term to the product
+        wp_set_object_terms($product_id, $brand_id, $term->taxonomy, false);
+        
+        return true;
     }
     
     /**
@@ -301,6 +328,11 @@ class D8Austin_Product_Importer_Improved {
         }
         
         $product->save();
+        
+        // Update brand if provided
+        if (!empty($product_data['brand_id'])) {
+            $this->assign_brand($product_id, $product_data['brand_id']);
+        }
         
         // Update images
         if (!empty($product_data['images'])) {

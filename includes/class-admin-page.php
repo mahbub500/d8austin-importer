@@ -18,6 +18,10 @@ class D8Austin_Admin_Page {
         // Get import history
         $import_history = self::get_import_history();
         
+        // Get available brands
+        $plugin = D8Austin_Importer_Plugin::get_instance();
+        $brands = $plugin->get_product_brands();
+        
         ?>
         <div class="wrap d8austin-importer-wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -41,6 +45,35 @@ class D8Austin_Admin_Page {
                                 required
                             >
                         </div>
+                        
+                        <?php if (!empty($brands)) : ?>
+                        <div class="form-group">
+                            <label for="single-brand-select"><?php _e('Brand (Optional)', 'd8austin-importer'); ?></label>
+                            <select id="single-brand-select" name="brand_id" class="regular-text">
+                                <option value="0"><?php _e('-- No Brand --', 'd8austin-importer'); ?></option>
+                                <?php foreach ($brands as $brand) : ?>
+                                    <option value="<?php echo esc_attr($brand['id']); ?>">
+                                        <?php echo esc_html($brand['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description">
+                                <?php _e('Select a brand to assign to this product (optional).', 'd8austin-importer'); ?>
+                            </p>
+                        </div>
+                        <?php else : ?>
+                        <div class="notice notice-info inline" style="margin: 15px 0;">
+                            <p>
+                                <strong><?php _e('Note:', 'd8austin-importer'); ?></strong>
+                                <?php 
+                                printf(
+                                    __('No brands found. You can create brands in %s.', 'd8austin-importer'),
+                                    '<a href="' . admin_url('edit-tags.php?taxonomy=product_brand&post_type=product') . '" target="_blank">' . __('Product Brands', 'd8austin-importer') . '</a>'
+                                );
+                                ?>
+                            </p>
+                        </div>
+                        <?php endif; ?>
                         
                         <button type="submit" class="button button-primary">
                             <span class="dashicons dashicons-download"></span>
@@ -74,6 +107,23 @@ https://www.d8austin.com/product-page/product-3"
                             </p>
                         </div>
                         
+                        <?php if (!empty($brands)) : ?>
+                        <div class="form-group">
+                            <label for="multiple-brand-select"><?php _e('Brand (Optional)', 'd8austin-importer'); ?></label>
+                            <select id="multiple-brand-select" name="brand_id" class="regular-text">
+                                <option value="0"><?php _e('-- No Brand --', 'd8austin-importer'); ?></option>
+                                <?php foreach ($brands as $brand) : ?>
+                                    <option value="<?php echo esc_attr($brand['id']); ?>">
+                                        <?php echo esc_html($brand['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description">
+                                <?php _e('Select a brand to assign to all imported products (optional).', 'd8austin-importer'); ?>
+                            </p>
+                        </div>
+                        <?php endif; ?>
+                        
                         <button type="submit" class="button button-primary">
                             <span class="dashicons dashicons-download"></span>
                             <?php _e('Import All Products', 'd8austin-importer'); ?>
@@ -101,6 +151,7 @@ https://www.d8austin.com/product-page/product-3"
                             <thead>
                                 <tr>
                                     <th><?php _e('Product Name', 'd8austin-importer'); ?></th>
+                                    <th><?php _e('Brand', 'd8austin-importer'); ?></th>
                                     <th><?php _e('Source URL', 'd8austin-importer'); ?></th>
                                     <th><?php _e('Imported Date', 'd8austin-importer'); ?></th>
                                     <th><?php _e('Actions', 'd8austin-importer'); ?></th>
@@ -115,6 +166,16 @@ https://www.d8austin.com/product-page/product-3"
                                                     <?php echo esc_html($product->post_title); ?>
                                                 </a>
                                             </strong>
+                                        </td>
+                                        <td>
+                                            <?php 
+                                            $brand_terms = self::get_product_brand_terms($product->ID);
+                                            if (!empty($brand_terms)) {
+                                                echo esc_html($brand_terms[0]->name);
+                                            } else {
+                                                echo '—';
+                                            }
+                                            ?>
                                         </td>
                                         <td>
                                             <?php 
@@ -169,6 +230,10 @@ https://www.d8austin.com/product-page/product-3"
                             <p><?php _e('Copy the full URL from your browser address bar.', 'd8austin-importer'); ?></p>
                         </li>
                         <li>
+                            <strong><?php _e('Select a brand (optional)', 'd8austin-importer'); ?></strong>
+                            <p><?php _e('Choose a brand to assign to the product, or leave it unassigned.', 'd8austin-importer'); ?></p>
+                        </li>
+                        <li>
                             <strong><?php _e('Paste and import', 'd8austin-importer'); ?></strong>
                             <p><?php _e('Paste the URL into the form above and click "Import Product".', 'd8austin-importer'); ?></p>
                         </li>
@@ -210,6 +275,30 @@ https://www.d8austin.com/product-page/product-3"
         
         $query = new WP_Query($args);
         return $query->posts;
+    }
+    
+    /**
+     * Get product brand terms
+     */
+    private static function get_product_brand_terms($product_id) {
+        // Check for common brand taxonomies
+        $brand_taxonomies = array(
+            'product_brand',
+            'pwb-brand',
+            'yith_product_brand',
+            'product-brand',
+        );
+        
+        foreach ($brand_taxonomies as $taxonomy) {
+            if (taxonomy_exists($taxonomy)) {
+                $terms = wp_get_post_terms($product_id, $taxonomy);
+                if (!is_wp_error($terms) && !empty($terms)) {
+                    return $terms;
+                }
+            }
+        }
+        
+        return array();
     }
     
     /**

@@ -3,7 +3,7 @@
  * Plugin Name: D8Austin Product Importer
  * Plugin URI: https://yoursite.com
  * Description: Import products from D8Austin.com to your WooCommerce store
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Your Name
  * Author URI: https://yoursite.com
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('D8AUSTIN_IMPORTER_VERSION', '1.1.0');
+define('D8AUSTIN_IMPORTER_VERSION', '1.2.0');
 define('D8AUSTIN_IMPORTER_FILE', __FILE__);
 define('D8AUSTIN_IMPORTER_PATH', plugin_dir_path(__FILE__));
 define('D8AUSTIN_IMPORTER_URL', plugin_dir_url(__FILE__));
@@ -119,18 +119,24 @@ class D8Austin_Importer_Plugin {
         }
         
         $product_url = isset($_POST['product_url']) ? esc_url_raw($_POST['product_url']) : '';
+        $brand_id = isset($_POST['brand_id']) ? intval($_POST['brand_id']) : 0;
         
         if (empty($product_url)) {
             wp_send_json_error(array('message' => 'Product URL is required'));
         }
         
         try {
-            // CORRECTED: Use scraper to scrape, then importer to import
+            // Use scraper to scrape, then importer to import
             $scraper = new D8Austin_Product_Scraper_Improved();
             $product_data = $scraper->scrape_product($product_url);
             
             if (!$product_data) {
                 wp_send_json_error(array('message' => 'Failed to scrape product data'));
+            }
+            
+            // Add brand to product data if selected
+            if ($brand_id > 0) {
+                $product_data['brand_id'] = $brand_id;
             }
             
             // Now use importer to import the scraped data
@@ -160,6 +166,7 @@ class D8Austin_Importer_Plugin {
         }
         
         $product_urls = isset($_POST['product_urls']) ? $_POST['product_urls'] : array();
+        $brand_id = isset($_POST['brand_id']) ? intval($_POST['brand_id']) : 0;
         
         if (empty($product_urls) || !is_array($product_urls)) {
             wp_send_json_error(array('message' => 'No product URLs provided'));
@@ -170,7 +177,7 @@ class D8Austin_Importer_Plugin {
             'failed' => array()
         );
         
-        // CORRECTED: Create both scraper and importer instances
+        // Create both scraper and importer instances
         $scraper = new D8Austin_Product_Scraper_Improved();
         $importer = new D8Austin_Product_Importer_Improved();
         
@@ -185,6 +192,11 @@ class D8Austin_Importer_Plugin {
                 $product_data = $scraper->scrape_product($url);
                 
                 if ($product_data) {
+                    // Add brand to product data if selected
+                    if ($brand_id > 0) {
+                        $product_data['brand_id'] = $brand_id;
+                    }
+                    
                     // Then import it
                     $product_id = $importer->import_product($product_data);
                     
@@ -215,6 +227,44 @@ class D8Austin_Importer_Plugin {
         }
         
         wp_send_json_success($results);
+    }
+    
+    /**
+     * Get product brands (supports multiple brand plugins/taxonomies)
+     */
+    public function get_product_brands() {
+        $brands = array();
+        
+        // Check for common brand taxonomies
+        $brand_taxonomies = array(
+            'product_brand',      // Perfect Brands for WooCommerce / Generic
+            'pwb-brand',          // Perfect WooCommerce Brands
+            'yith_product_brand', // YITH WooCommerce Brands
+            'product-brand',      // Alternative naming
+        );
+        
+        foreach ($brand_taxonomies as $taxonomy) {
+            if (taxonomy_exists($taxonomy)) {
+                $terms = get_terms(array(
+                    'taxonomy' => $taxonomy,
+                    'hide_empty' => false,
+                ));
+                
+                if (!is_wp_error($terms) && !empty($terms)) {
+                    foreach ($terms as $term) {
+                        $brands[] = array(
+                            'id' => $term->term_id,
+                            'name' => $term->name,
+                            'slug' => $term->slug,
+                            'taxonomy' => $taxonomy
+                        );
+                    }
+                }
+                break; // Use first found taxonomy
+            }
+        }
+        
+        return $brands;
     }
 }
 
